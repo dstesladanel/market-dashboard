@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>לוח שוק ההון החי</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;700;900&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg: #0b0d10;
+    --card: #15181d;
+    --card-border: #23272e;
+    --text: #f2f2f2;
+    --text-dim: #9aa0a6;
+    --accent: #ff7a30;
+    --accent-dim: rgba(255, 122, 48, 0.15);
+    --green: #23c07a;
+    --red: #e5484d;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Heebo', sans-serif;
+    direction: rtl;
+  }
+  body { padding-bottom: 60px; }
+  header {
+    padding: 28px 24px 18px;
+    text-align: center;
+    border-bottom: 1px solid var(--card-border);
+    margin-bottom: 24px;
+  }
+  header .eyebrow {
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+  header h1 {
+    margin: 0 0 8px;
+    font-size: 28px;
+    font-weight: 900;
+  }
+  header p {
+    margin: 0;
+    color: var(--text-dim);
+    font-size: 14px;
+  }
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+  .vix-strip {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 28px;
+  }
+  .vix-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    max-width: 360px;
+    width: 100%;
+  }
+  .vix-card .label {
+    font-size: 13px;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+  .vix-card .name {
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 2px;
+  }
+  section.panel {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    padding: 18px;
+    margin-bottom: 24px;
+    overflow: hidden;
+  }
+  section.panel h2 {
+    font-size: 16px;
+    margin: 0 0 14px;
+    font-weight: 700;
+    color: var(--text);
+  }
+  .ticker-wrap {
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 24px;
+  }
+  form#leadForm {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 14px;
+  }
+  form#leadForm .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  form#leadForm label {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  form#leadForm input {
+    background: #0e1013;
+    border: 1px solid var(--card-border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  form#leadForm input:focus {
+    border-color: var(--accent);
+  }
+  form#leadForm .submit-row {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 4px;
+  }
+  button#submitBtn {
+    background: var(--accent);
+    color: #1a0d03;
+    border: none;
+    border-radius: 10px;
+    padding: 13px 28px;
+    font-family: inherit;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  button#submitBtn:disabled {
+    opacity: 0.6;
+    cursor: default;
+  }
+  #formMsg {
+    font-size: 13px;
+  }
+  #formMsg.success { color: var(--green); }
+  #formMsg.error { color: var(--red); }
+  footer {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 12px;
+    margin-top: 30px;
+  }
+  @media (max-width: 700px) {
+    form#leadForm { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">שוק ההון בזמן אמת</div>
+  <h1>לוח נתונים חי</h1>
+  <p>מניות מובילות · מדדים · קריפטו · מטבעות · סחורות · VIX</p>
+</header>
+
+<main>
+
+  <div class="ticker-wrap">
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
+      {
+        "symbols": [
+          {"proName": "NASDAQ:AAPL", "title": "Apple"},
+          {"proName": "NASDAQ:MSFT", "title": "Microsoft"},
+          {"proName": "NASDAQ:NVDA", "title": "Nvidia"},
+          {"proName": "NASDAQ:GOOGL", "title": "Google"},
+          {"proName": "NASDAQ:AMZN", "title": "Amazon"},
+          {"proName": "TVC:SPX", "title": "S&P 500"},
+          {"proName": "TVC:DJI", "title": "Dow Jones"},
+          {"proName": "TVC:NDX", "title": "Nasdaq 100"},
+          {"proName": "CBOE:VIX", "title": "VIX"},
+          {"proName": "BINANCE:BTCUSDT", "title": "Bitcoin"},
+          {"proName": "BINANCE:ETHUSDT", "title": "Ethereum"},
+          {"proName": "FX_IDC:USDILS", "title": "USD/ILS"},
+          {"proName": "TVC:USOIL", "title": "נפט WTI"}
+        ],
+        "showSymbolLogo": true,
+        "colorTheme": "dark",
+        "isTransparent": false,
+        "displayMode": "adaptive",
+        "locale": "he"
+      }
+      </script>
+    </div>
+  </div>
+
+  <div class="vix-strip">
+    <div class="vix-card">
+      <div style="width:100%">
+        <div class="name">מדד הפחד VIX</div>
+        <div class="label" style="margin-bottom:8px">CBOE Volatility Index</div>
+        <div class="tradingview-widget-container">
+          <div class="tradingview-widget-container__widget"></div>
+          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-single-quote.js" async>
+          {
+            "symbol": "CBOE:VIX",
+            "width": "100%",
+            "colorTheme": "dark",
+            "isTransparent": true,
+            "locale": "he"
+          }
+          </script>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="panel">
+    <h2>סקירת שוק</h2>
+    <div class="tradingview-widget-container">
+      <div class="tradingview-widget-container__widget"></div>
+      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-market-overview.js" async>
+      {
+        "colorTheme": "dark",
+        "dateRange": "12M",
+        "showChart": true,
+        "locale": "he",
+        "largeChartUrl": "",
+        "isTransparent": true,
+        "showSymbolLogo": true,
+        "showFloatingTooltip": false,
+        "width": "100%",
+        "height": "500",
+        "plotLineColorGrowing": "rgba(35, 192, 122, 1)",
+        "plotLineColorFalling": "rgba(229, 72, 77, 1)",
+        "gridLineColor": "rgba(35, 39, 46, 1)",
+        "scaleFontColor": "rgba(154, 160, 166, 1)",
+        "belowLineFillColorGrowing": "rgba(35, 192, 122, 0.12)",
+        "belowLineFillColorFalling": "rgba(229, 72, 77, 0.12)",
+        "belowLineFillColorGrowingBottom": "rgba(35, 192, 122, 0)",
+        "belowLineFillColorFallingBottom": "rgba(229, 72, 77, 0)",
+        "symbolActiveColor": "rgba(255, 122, 48, 0.12)",
+        "tabs": [
+          {
+            "title": "מניות מובילות",
+            "symbols": [
+              {"s": "NASDAQ:AAPL", "d": "Apple"},
+              {"s": "NASDAQ:MSFT", "d": "Microsoft"},
+              {"s": "NASDAQ:GOOGL", "d": "Alphabet"},
+              {"s": "NASDAQ:AMZN", "d": "Amazon"},
+              {"s": "NASDAQ:NVDA", "d": "Nvidia"},
+              {"s": "NASDAQ:META", "d": "Meta"},
+              {"s": "NASDAQ:TSLA", "d": "Tesla"},
+              {"s": "NASDAQ:AVGO", "d": "Broadcom"},
+              {"s": "NYSE:JPM", "d": "JPMorgan"},
+              {"s": "NYSE:V", "d": "Visa"}
+            ]
+          },
+          {
+            "title": "מדדים מובילים",
+            "symbols": [
+              {"s": "TVC:SPX", "d": "S&P 500"},
+              {"s": "TVC:DJI", "d": "Dow Jones"},
+              {"s": "TVC:NDX", "d": "Nasdaq 100"},
+              {"s": "TVC:RUT", "d": "Russell 2000"},
+              {"s": "TVC:DAX", "d": "DAX"},
+              {"s": "TVC:UKX", "d": "FTSE 100"},
+              {"s": "TVC:NI225", "d": "Nikkei 225"},
+              {"s": "CBOE:VIX", "d": "VIX"}
+            ]
+          },
+          {
+            "title": "קריפטו",
+            "symbols": [
+              {"s": "BINANCE:BTCUSDT", "d": "Bitcoin"},
+              {"s": "BINANCE:ETHUSDT", "d": "Ethereum"},
+              {"s": "BINANCE:BNBUSDT", "d": "BNB"},
+              {"s": "BINANCE:SOLUSDT", "d": "Solana"},
+              {"s": "BINANCE:XRPUSDT", "d": "XRP"},
+              {"s": "BINANCE:ADAUSDT", "d": "Cardano"},
+              {"s": "BINANCE:DOGEUSDT", "d": "Dogecoin"},
+              {"s": "BINANCE:TONUSDT", "d": "Toncoin"},
+              {"s": "BINANCE:AVAXUSDT", "d": "Avalanche"},
+              {"s": "BINANCE:DOTUSDT", "d": "Polkadot"}
+            ]
+          },
+          {
+            "title": "מטבעות",
+            "symbols": [
+              {"s": "FX:EURUSD", "d": "EUR/USD"},
+              {"s": "FX:GBPUSD", "d": "GBP/USD"},
+              {"s": "FX:USDJPY", "d": "USD/JPY"},
+              {"s": "FX_IDC:USDILS", "d": "USD/ILS"},
+              {"s": "FX:USDCHF", "d": "USD/CHF"},
+              {"s": "FX:AUDUSD", "d": "AUD/USD"},
+              {"s": "FX:USDCAD", "d": "USD/CAD"},
+              {"s": "FX_IDC:USDCNH", "d": "USD/CNH"}
+            ]
+          },
+          {
+            "title": "סחורות",
+            "symbols": [
+              {"s": "TVC:USOIL", "d": "נפט WTI"},
+              {"s": "TVC:UKOIL", "d": "נפט ברנט"},
+              {"s": "NYMEX:NG1!", "d": "גז טבעי"},
+              {"s": "TVC:GOLD", "d": "זהב"},
+              {"s": "TVC:SILVER", "d": "כסף"}
+            ]
+          }
+        ]
+      }
+      </script>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>הצטרפו לקהילה שלי</h2>
+    <form id="leadForm">
+      <div class="field">
+        <label for="name">שם מלא</label>
+        <input type="text" id="name" name="name" required autocomplete="name" />
+      </div>
+      <div class="field">
+        <label for="email">דוא"ל</label>
+        <input type="email" id="email" name="email" required autocomplete="email" />
+      </div>
+      <div class="field">
+        <label for="phone">טלפון</label>
+        <input type="tel" id="phone" name="phone" required autocomplete="tel" placeholder="05X-XXXXXXX" />
+      </div>
+      <div class="submit-row">
+        <button id="submitBtn" type="submit">הצטרפות</button>
+        <span id="formMsg"></span>
+      </div>
+    </form>
+  </section>
+
+</main>
+
+<footer>
+  נתוני שוק באדיבות TradingView · עדכון בזמן אמת
+</footer>
+
+<script>
+  // Replace with the deployed Google Apps Script Web App URL (see SETUP.md)
+  const GOOGLE_SCRIPT_URL = "PASTE_YOUR_APPS_SCRIPT_URL_HERE";
+
+  const form = document.getElementById('leadForm');
+  const btn = document.getElementById('submitBtn');
+  const msg = document.getElementById('formMsg');
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    msg.textContent = '';
+    msg.className = '';
+
+    if (GOOGLE_SCRIPT_URL.includes('PASTE_YOUR_APPS_SCRIPT_URL_HERE')) {
+      msg.textContent = 'טרם הוגדרה כתובת השמירה (ראו SETUP.md).';
+      msg.className = 'error';
+      return;
+    }
+
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+
+    if (!name || !email || !phone) {
+      msg.textContent = 'נא למלא את כל השדות.';
+      msg.className = 'error';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'שולח...';
+
+    try {
+      await fetch(GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ name, email, phone })
+      });
+      msg.textContent = 'תודה! נרשמת בהצלחה.';
+      msg.className = 'success';
+      form.reset();
+    } catch (err) {
+      msg.textContent = 'אירעה שגיאה בשליחה, נסו שוב.';
+      msg.className = 'error';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'הצטרפות';
+    }
+  });
+</script>
+
+</body>
+</html>
