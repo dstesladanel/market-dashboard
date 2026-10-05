@@ -24,65 +24,102 @@ export async function formEditorView(root, ctx) {
     touch(); draw();
   };
 
-  function itemRow(item) {
+  // מצב פתיחה נשמר בין ציורים מחדש, כדי שהמסך לא "יקפוץ" אחרי כל שינוי
+  const openItems = new Set();
+  const closedDomains = new Set();
+
+  const chip = (text, cls = "") => h("span", { class: "chip-sm " + cls }, text);
+
+  function itemRow(item, n) {
     const idx = draft.items.indexOf(item);
     const bind = (key) => (e) => { item[key] = e.target.value; touch(); };
+    const sumText = h("span", { class: "sum-text" }, item.text || "היגד חדש (לחצו לעריכה)");
+    const field = (label, ctl) => h("label", { class: "field" }, h("span", {}, label), ctl);
     const typeSel = h("select", {
       onchange: (e) => { item.type = e.target.value; touch(); draw(); },
     }, Object.entries(TYPES).map(([k, v]) => h("option", { value: k, selected: item.type === k }, v)));
 
-    return h("div", { class: "edit-item" + (item.active === false ? " off" : "") },
-      h("div", { class: "edit-line" },
-        h("input", { class: "grow", value: item.text, placeholder: "ניסוח ההיגד (התנהגות שנראית בגן)", oninput: bind("text") }),
-        typeSel,
-        h("button", { class: "icon", title: "למעלה", onclick: () => move(draft.items, idx, -1, (x) => x.domain === item.domain) }, "↑"),
-        h("button", { class: "icon", title: "למטה", onclick: () => move(draft.items, idx, 1, (x) => x.domain === item.domain) }, "↓"),
-        h("button", {
-          class: "icon danger", title: "מחיקה",
-          onclick: () => { if (confirm("למחוק את ההיגד? מילויים קודמים נשארים כפי שמולאו.")) { draft.items.splice(idx, 1); touch(); draw(); } },
-        }, "✕")
-      ),
-      item.type === "scale" && h("div", { class: "edit-line" },
-        h("input", { class: "grow", value: item.low || "", placeholder: "עוגן לציון 1", oninput: bind("low") }),
-        h("input", { class: "grow", value: item.high || "", placeholder: "עוגן לציון 5", oninput: bind("high") })),
-      h("div", { class: "edit-line" },
-        h("input", { class: "grow", value: item.note || "", placeholder: "הערה או דוגמה (לא חובה)", oninput: bind("note") }),
-        item.type === "yesno" && h("label", { class: "check", title: "מופיע ברשימת הילדים המסומנים אצל המנהלת" },
-          h("input", { type: "checkbox", checked: !!item.flag, onchange: (e) => { item.flag = e.target.checked; touch(); } }), "דגל בטיחות"),
-        item.type !== "text" && h("label", { class: "check", title: "סייעת רואה וממלאת רק היגדים כאלה" },
-          h("input", { type: "checkbox", checked: !!item.assistant, onchange: (e) => { item.assistant = e.target.checked; touch(); } }), "סייעת"),
-        h("label", { class: "check" },
-          h("input", { type: "checkbox", checked: item.active !== false, onchange: (e) => { item.active = e.target.checked; touch(); draw(); } }), "פעיל"))
+    return h("details", {
+      class: "edit-item" + (item.active === false ? " off" : ""), open: openItems.has(item.id),
+      ontoggle: (e) => { if (e.target.open) openItems.add(item.id); else openItems.delete(item.id); },
+    },
+      h("summary", {},
+        h("span", { class: "num" }, n),
+        sumText,
+        h("span", { class: "chips-sm" },
+          chip(TYPES[item.type]),
+          item.type === "yesno" && item.flag ? chip("⚑ דגל", "warn") : null,
+          item.assistant ? chip("סייעת") : null,
+          item.active === false ? chip("לא פעיל", "off") : null)),
+      h("div", { class: "edit-body" },
+        field("ניסוח ההיגד (התנהגות שנראית בגן)", h("textarea", {
+          rows: 2, value: item.text,
+          oninput: (e) => { item.text = e.target.value; sumText.textContent = e.target.value || "היגד חדש (לחצו לעריכה)"; touch(); },
+        })),
+        h("div", { class: "grid2" },
+          field("סוג תשובה", typeSel),
+          field("הערה או דוגמה (לא חובה)", h("input", { value: item.note || "", oninput: bind("note") }))),
+        item.type === "scale" && h("div", { class: "grid2" },
+          field("עוגן לציון 1", h("input", { value: item.low || "", oninput: bind("low") })),
+          field("עוגן לציון 5", h("input", { value: item.high || "", oninput: bind("high") }))),
+        h("div", { class: "edit-line checks" },
+          item.type === "yesno" && h("label", { class: "check", title: "הילד יופיע ברשימת הילדים המסומנים אצל המנהלת" },
+            h("input", { type: "checkbox", checked: !!item.flag, onchange: (e) => { item.flag = e.target.checked; touch(); draw(); } }), "דגל בטיחות"),
+          item.type !== "text" && h("label", { class: "check", title: "הסייעת רואה וממלאת רק היגדים כאלה" },
+            h("input", { type: "checkbox", checked: !!item.assistant, onchange: (e) => { item.assistant = e.target.checked; touch(); draw(); } }), "מוצג לסייעת"),
+          h("label", { class: "check" },
+            h("input", { type: "checkbox", checked: item.active !== false, onchange: (e) => { item.active = e.target.checked; touch(); draw(); } }), "פעיל")),
+        h("div", { class: "edit-line actions-row" },
+          h("button", { class: "btn small", onclick: () => move(draft.items, idx, -1, (x) => x.domain === item.domain) }, "↑ למעלה"),
+          h("button", { class: "btn small", onclick: () => move(draft.items, idx, 1, (x) => x.domain === item.domain) }, "↓ למטה"),
+          h("span", { class: "spacer" }),
+          h("button", {
+            class: "btn small danger",
+            onclick: () => { if (confirm("למחוק את ההיגד? מילויים קודמים נשארים כפי שמולאו.")) { draft.items.splice(idx, 1); touch(); draw(); } },
+          }, "מחיקה"))
+      )
     );
   }
 
   function domainCard(dom, di) {
     const items = draft.items.filter((i) => i.domain === dom.id);
-    return h("div", { class: "card edit-domain", style: `border-top:6px solid ${dom.color}` },
-      h("div", { class: "edit-line" },
-        h("input", { class: "grow title", value: dom.name, oninput: (e) => { dom.name = e.target.value; touch(); } }),
-        h("select", {
-          onchange: (e) => { dom.color = e.target.value; touch(); draw(); },
-        }, PALETTE.map((c) => h("option", { value: c, selected: c === dom.color, style: `background:${c}` }, "■ צבע"))),
-        h("label", { class: "check", title: "תחום סיום: שדות טקסט בלי ממוצע" },
-          h("input", { type: "checkbox", checked: !!dom.closing, onchange: (e) => { dom.closing = e.target.checked; touch(); } }), "תחום סיום"),
-        h("button", { class: "icon", onclick: () => move(draft.domains, di, -1) }, "↑"),
-        h("button", { class: "icon", onclick: () => move(draft.domains, di, 1) }, "↓"),
-        h("button", {
-          class: "icon danger",
-          onclick: () => {
-            if (!confirm(`למחוק את התחום "${dom.name}" ואת ${items.length} ההיגדים שבו?`)) return;
-            draft.items = draft.items.filter((i) => i.domain !== dom.id);
-            draft.domains.splice(di, 1); touch(); draw();
-          },
-        }, "✕")),
-      items.map(itemRow),
+    const field = (label, ctl) => h("label", { class: "field" }, h("span", {}, label), ctl);
+    const nameShown = h("span", { class: "dom-name" }, dom.name || "תחום חדש");
+    return h("details", {
+      class: "card edit-domain", style: `border-top:6px solid ${dom.color}`, open: !closedDomains.has(dom.id),
+      ontoggle: (e) => { if (e.target.open) closedDomains.delete(dom.id); else closedDomains.add(dom.id); },
+    },
+      h("summary", { class: "dom-sum" },
+        h("span", { class: "dom-dot", style: `background:${dom.color}` }),
+        nameShown,
+        h("span", { class: "muted small" }, `${items.length} היגדים${dom.closing ? " · תחום סיום" : ""}`)),
+      h("details", { class: "dom-settings" }, h("summary", {}, "⚙ הגדרות התחום (שם, צבע, סדר, מחיקה)"), h("div", { class: "edit-body" },
+        h("div", { class: "grid2" },
+          field("שם התחום", h("input", { value: dom.name, oninput: (e) => { dom.name = e.target.value; nameShown.textContent = e.target.value || "תחום חדש"; touch(); } })),
+          field("צבע", h("select", { onchange: (e) => { dom.color = e.target.value; touch(); draw(); } },
+            PALETTE.map((c) => h("option", { value: c, selected: c === dom.color, style: `background:${c}` }, "■ " + c))))),
+        h("div", { class: "edit-line checks" },
+          h("label", { class: "check", title: "תחום סיום: שדות טקסט בלי ממוצע" },
+            h("input", { type: "checkbox", checked: !!dom.closing, onchange: (e) => { dom.closing = e.target.checked; touch(); draw(); } }), "תחום סיום (טקסט, בלי ממוצע)"),
+          h("span", { class: "spacer" }),
+          h("button", { class: "btn small", onclick: () => move(draft.domains, di, -1) }, "↑ תחום למעלה"),
+          h("button", { class: "btn small", onclick: () => move(draft.domains, di, 1) }, "↓ תחום למטה"),
+          h("button", {
+            class: "btn small danger",
+            onclick: () => {
+              if (!confirm(`למחוק את התחום "${dom.name}" ואת ${items.length} ההיגדים שבו?`)) return;
+              draft.items = draft.items.filter((i) => i.domain !== dom.id);
+              draft.domains.splice(di, 1); touch(); draw();
+            },
+          }, "מחיקת תחום"))
+      )),
+      h("div", { class: "items-list" }, items.map((it, k) => itemRow(it, k + 1))),
       h("div", { class: "edit-line" },
         h("button", {
           class: "btn small",
           onclick: () => {
-            draft.items.push({ id: rid("i"), domain: dom.id, type: dom.closing ? "text" : "scale", text: "", low: "", high: "", note: "", flag: false, assistant: false, active: true });
-            touch(); draw();
+            const it = { id: rid("i"), domain: dom.id, type: dom.closing ? "text" : "scale", text: "", low: "", high: "", note: "", flag: false, assistant: false, active: true };
+            draft.items.push(it); openItems.add(it.id); touch(); draw();
           },
         }, "+ היגד")));
   }
@@ -133,6 +170,8 @@ export async function formEditorView(root, ctx) {
     h("div", { class: "toolbar" },
       h("h2", {}, `עריכת השאלון · גרסה נוכחית ${base.version}`), badge,
       h("span", { class: "spacer" }),
+      h("button", { class: "btn", onclick: () => { draft.items.forEach((i) => openItems.add(i.id)); draw(); } }, "פתיחת כל ההיגדים"),
+      h("button", { class: "btn", onclick: () => { openItems.clear(); draw(); } }, "סגירת כל ההיגדים"),
       h("button", {
         class: "btn",
         onclick: () => { if (confirm("להחליף את הטיוטה בתבנית הפיילוט המקורית? (לא משפיע עד פרסום)")) { const s = seedForm(); draft = { settings: s.settings, domains: s.domains, items: s.items }; touch(); draw(); } },

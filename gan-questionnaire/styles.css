@@ -126,3 +126,52 @@ label > input, label > select, label > textarea { margin-top: .25rem; color: var
 
 .top .nav-link { color: #cdd5e0; font-size: .85rem; }
 .share-text { white-space: pre-wrap; background: #f6f3ee; border: 1px solid var(--line); border-radius: 10px; padding: .8rem 1rem; font-family: inherit; line-height: 1.7; }
+
+/* ---------- עריכת השאלון: היגדים מכווצים, עריכה בלחיצה ---------- */
+details > summary { list-style: none; cursor: pointer; }
+details > summary::-webkit-details-marker { display: none; }
+.edit-domain > summary.dom-sum { display: flex; align-items: center; gap: .6rem; padding: .2rem 0 .5rem; font-weight: 700; font-size: 1.1rem; }
+.edit-domain > summary.dom-sum::after, .edit-item > summary::after { content: "▾"; margin-inline-start: auto; color: var(--muted); transition: transform .15s; }
+.edit-domain:not([open]) > summary::after, .edit-item:not([open]) > summary::after { transform: rotate(90deg); }
+.dom-dot { width: .9rem; height: .9rem; border-radius: 50%; border: 1px solid rgba(0,0,0,.15); flex: none; }
+.dom-name { flex: 0 1 auto; }
+.items-list { display: grid; gap: .35rem; margin: .4rem 0; }
+.edit-item { border: 1px solid var(--line); border-radius: 10px; background: #fcfbf8; padding: 0; margin: 0; display: block; }
+.edit-item[open] { background: #fff; border-color: #cfc8bb; }
+.edit-item > summary { display: flex; align-items: flex-start; gap: .55rem; padding: .55rem .7rem; }
+.edit-item .num { flex: none; min-width: 1.6rem; height: 1.6rem; border-radius: 50%; background: var(--navy); color: #fff; font-size: .8rem; display: inline-flex; align-items: center; justify-content: center; margin-top: .1rem; }
+.edit-item .sum-text { flex: 1; min-width: 0; line-height: 1.4; overflow-wrap: anywhere; }
+.edit-item .chips-sm { display: flex; flex-wrap: wrap; gap: .25rem; flex: none; max-width: 40%; justify-content: flex-end; }
+.chip-sm { font-size: .7rem; background: #eee9df; border-radius: 999px; padding: 0 .5rem; white-space: nowrap; line-height: 1.5; }
+.chip-sm.warn { background: #fff1d6; color: #8a3a00; } .chip-sm.off { background: #ddd; color: #666; }
+.edit-body { display: grid; gap: .6rem; padding: .3rem .7rem .8rem; }
+.edit-domain > .edit-body { padding: .3rem 0 .6rem; }
+.field { display: grid; gap: .2rem; font-size: .82rem; color: var(--muted); }
+.field input, .field select, .field textarea { margin-top: 0; }
+.edit-line.checks { gap: .5rem 1.1rem; }
+.edit-line.actions-row { border-top: 1px dashed var(--line); padding-top: .55rem; }
+
+/* ---------- טבלאות → כרטיסים בטלפון ---------- */
+@media (max-width: 720px) {
+  .table.stack, .table.stack tbody { display: block; border: 0; background: transparent; }
+  .table.stack thead { display: none; }
+  .table.stack tr { display: block; background: #fff; border: 1px solid var(--line); border-radius: 12px; margin: 0 0 .6rem; padding: .35rem .8rem; }
+  .table.stack td { display: flex; align-items: center; justify-content: space-between; gap: .8rem; border: 0; border-bottom: 1px dashed #eee7da; padding: .45rem 0; text-align: start; }
+  .table.stack td:last-child { border-bottom: 0; }
+  .table.stack td[data-label]::before { content: attr(data-label); color: var(--muted); font-size: .8rem; flex: none; }
+  .table.stack td > input, .table.stack td > select { width: auto; flex: 1; min-width: 0; max-width: 62%; }
+  .table.stack td.actions { justify-content: flex-start; flex-wrap: wrap; }
+  .table.stack td.actions::before { width: 100%; }
+  .table.stack td.cell-email { font-weight: 600; overflow-wrap: anywhere; }
+  .toolbar > .btn, .toolbar > select, .toolbar > a.btn { flex: 1 1 auto; text-align: center; }
+  .toolbar .spacer { display: none; }
+  .edit-item .chips-sm { max-width: 34%; }
+  .edit-line.actions-row .spacer { display: none; }
+  .edit-line.actions-row .btn { flex: 1; }
+  .grid2 { grid-template-columns: 1fr; }
+  .top { gap: .4rem .8rem; } .top nav { flex-wrap: wrap; } .top .spacer { display: none; } .top .who { display: none; }
+}
+.dom-settings { margin: 0 0 .5rem; border: 1px dashed var(--line); border-radius: 10px; }
+.dom-settings > summary { padding: .4rem .7rem; font-size: .85rem; color: var(--muted); }
+.dom-settings[open] > summary { border-bottom: 1px dashed var(--line); }
+.dom-settings > .edit-body { padding: .6rem .7rem; }

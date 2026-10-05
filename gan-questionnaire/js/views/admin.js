@@ -78,12 +78,12 @@ export async function dashboardView(root, ctx) {
       h("h3", {}, `ילדים שסומנו בפריט בטיחות (${flagged.length})`),
       flagged.length ? [
         h("p", { class: "chips" }, flagCounts(flagged).map(([t, n]) => h("span", { class: "chip" }, `${t} · ${n}`))),
-        h("table", { class: "table compact" },
+        h("table", { class: "table compact stack" },
           h("thead", {}, h("tr", {}, ["גן", "מספר ילד", "תאריך", "פריטים שסומנו"].map((t) => h("th", {}, t)))),
           h("tbody", {}, flagged.map((s) => h("tr", {},
-            h("td", {}, gName(s.gardenId)),
-            h("td", { class: "code" }, h("a", { href: `#/admin/child/${s.gardenId}/${encodeURIComponent(s.childCode)}` }, s.childCode)),
-            h("td", {}, fmtDate(s.date)), h("td", {}, s.flags.map((f) => f.text).join(" · "))))))
+            h("td", { "data-label": "גן" }, gName(s.gardenId)),
+            h("td", { "data-label": "מספר ילד", class: "code" }, h("a", { href: `#/admin/child/${s.gardenId}/${encodeURIComponent(s.childCode)}` }, s.childCode)),
+            h("td", { "data-label": "תאריך" }, fmtDate(s.date)), h("td", { "data-label": "פריטים שסומנו" }, s.flags.map((f) => f.text).join(" · "))))))
       ] : h("p", { class: "muted" }, "אין ילדים מסומנים."))
   );
 }

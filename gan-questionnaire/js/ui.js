@@ -1,4 +1,10 @@
 // עזרי DOM קטנים. כל טקסט נכנס כ-textContent, לכן אין הזרקת HTML.
+
+// append מקורי מצייר "null" כטקסט כשמעבירים null/false. כאן מסננים אותם, ומשטחים מערכים.
+const nativeAppend = Element.prototype.append;
+Element.prototype.append = function (...nodes) {
+  return nativeAppend.apply(this, nodes.flat(Infinity).filter((n) => n != null && n !== false));
+};
 export function h(tag, attrs, ...kids) {
   const el = document.createElement(tag);
   let value;
