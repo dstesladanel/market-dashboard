@@ -46,23 +46,30 @@ await page.getByPlaceholder("שם הגן").fill("גן תקשורת ב");
 await page.getByRole("button", { name: "הוספת גן" }).click();
 await page.waitForSelector("text=הוספת משתמשת");
 await page.getByPlaceholder("אימייל").fill("teacher@test.il");
+await page.locator("form.card input[minlength='6']").fill("pw123456");
 await page.locator("form.card input[type=checkbox]").first().check();
 await page.getByRole("button", { name: "הוספה", exact: true }).click();
 await page.waitForSelector("text=teacher@test.il");
 await page.getByPlaceholder("אימייל").fill("aide@test.il");
+await page.locator("form.card input[minlength='6']").fill("pw123456");
 await page.locator("form.card select").selectOption("assistant");
 await page.locator("form.card input[type=checkbox]").first().check();
 await page.getByRole("button", { name: "הוספה", exact: true }).click();
 await page.waitForSelector("text=aide@test.il");
-// משתמשת עם סיסמה זמנית (בלי מייל)
+// משתמשת שלישית: הודעת וואטסאפ מוכנה עם הקישור, האימייל והסיסמה. בלי מייל.
 await page.getByPlaceholder("אימייל").fill("pw@test.il");
-await page.getByPlaceholder("ריק = נשלח קישור במייל").fill("abc12345");
+await page.locator("form.card input[minlength='6']").fill("abc12345");
 await page.locator("form.card select").selectOption("teacher");
 await page.getByRole("button", { name: "הוספה", exact: true }).click();
-await page.waitForSelector("text=pw@test.il");
+await page.waitForSelector(".share");
+const shareText = await page.locator(".share-text").innerText();
+assert.match(shareText, /pw@test\.il/);
+assert.match(shareText, /abc12345/);
+assert.match(shareText, /gan-questionnaire|127\.0\.0\.1/);
+assert.match(await page.locator(".share a[href^='https://wa.me/']").getAttribute("href"), /^https:\/\/wa\.me\/\?text=/);
 const resets = await page.evaluate(() => window.__resets || []);
-assert.ok(resets.includes("teacher@test.il") && !resets.includes("pw@test.il"), "מייל נשלח רק למי שלא קיבלה סיסמה זמנית");
-step("גנים ומשתמשות נוספו (כולל סיסמה זמנית בלי מייל)");
+assert.deepEqual(resets, [], "לא נשלח אף מייל");
+step("גנים ומשתמשות נוספו, הודעת וואטסאפ מוכנה, בלי מייל");
 
 // ---- עריכת שאלון ----
 await page.getByRole("link", { name: "עריכת השאלון" }).click();
@@ -78,13 +85,7 @@ await page.getByRole("button", { name: "פרסום גרסה חדשה" }).click()
 await page.waitForSelector("text=גרסה נוכחית 2");
 step("פרסום גרסה 2 עם היגד חדש");
 
-// ---- כניסה כסייעת ללא סיסמה מוגדרת: מגדירים סיסמה כמו אחרי קישור ----
-await page.evaluate(() => {
-  const s = JSON.parse(localStorage.getItem("fakeauth"));
-  s.accounts["teacher@test.il"] = "pw123456"; s.accounts["aide@test.il"] = "pw123456"; s.current = null;
-  localStorage.setItem("fakeauth", JSON.stringify(s));
-});
-await page.reload();
+await page.getByRole("button", { name: "יציאה" }).click();
 
 async function login(email) {
   await page.locator("input[type=email]").fill(email);
@@ -232,7 +233,20 @@ await page.locator("input[type=email]").fill("pw@test.il");
 await page.locator("input[type=password]").fill("abc12345");
 await page.getByRole("button", { name: "כניסה" }).click();
 await page.waitForSelector("text=תמונת מערך");
-step("מנהלת נוספת: תפקיד שונה, נכנסה עם סיסמה זמנית");
+step("מנהלת נוספת: תפקיד שונה, נכנסה עם הסיסמה שנקבעה");
+await page.getByRole("link", { name: "שינוי סיסמה" }).click();
+const pwInputs = page.locator("form input[type=password]");
+await pwInputs.nth(0).fill("abc12345");
+await pwInputs.nth(1).fill("newpass99");
+await pwInputs.nth(2).fill("newpass99");
+await page.getByRole("button", { name: "שינוי סיסמה" }).click();
+await page.waitForSelector("text=תמונת מערך");
+await page.getByRole("button", { name: "יציאה" }).click();
+await page.locator("input[type=email]").fill("pw@test.il");
+await page.locator("input[type=password]").fill("newpass99");
+await page.getByRole("button", { name: "כניסה" }).click();
+await page.waitForSelector("text=תמונת מערך");
+step("שינוי סיסמה עצמי עובד");
 
 assert.deepEqual(errors, [], "console errors: " + errors.join("; "));
 console.log("UI smoke passed");

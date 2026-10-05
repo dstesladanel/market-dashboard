@@ -2,7 +2,7 @@
 import { initializeApp, deleteApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
   getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword,
-  sendPasswordResetEmail, signOut
+  sendPasswordResetEmail, signOut, updatePassword, reauthenticateWithCredential, EmailAuthProvider
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import {
   getFirestore, doc, collection, getDoc, getDocs, setDoc, updateDoc, deleteDoc,
@@ -18,6 +18,7 @@ export const db = getFirestore(app);
 export {
   initializeApp, deleteApp, getAuth, onAuthStateChanged, signInWithEmailAndPassword,
   createUserWithEmailAndPassword, sendPasswordResetEmail, signOut,
+  updatePassword, reauthenticateWithCredential, EmailAuthProvider,
   doc, collection, getDoc, getDocs, setDoc, updateDoc, deleteDoc, query, where, writeBatch
 };
 export { firebaseConfig };

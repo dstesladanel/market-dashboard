@@ -10,7 +10,10 @@ const put = (s) => localStorage.setItem(KEY, JSON.stringify(s));
 const listeners = [];
 const notify = () => { const c = st().current; listeners.forEach((cb) => cb(c ? { email: c } : null)); };
 const isMain = (a) => a.app.name === '[DEFAULT]';
-export const getAuth = (app) => ({ app });
+export const getAuth = (app) => ({ app, get currentUser() { const c = st().current; return c ? { email: c } : null; } });
+export const EmailAuthProvider = { credential: (email, pw) => ({ email, pw }) };
+export const reauthenticateWithCredential = async (u, c) => { if (st().accounts[u.email] !== c.pw) throw { code: 'auth/invalid-credential' }; };
+export const updatePassword = async (u, pw) => { const s = st(); s.accounts[u.email] = pw; put(s); };
 export const onAuthStateChanged = (auth, cb) => { listeners.push(cb); setTimeout(notify, 0); };
 export const signInWithEmailAndPassword = async (auth, email, pw) => {
   const s = st(); email = email.toLowerCase();

@@ -9,6 +9,7 @@ import { dashboardView, adminGardenView } from "./views/admin.js";
 import { childView } from "./views/child.js";
 import { formEditorView } from "./views/formEditor.js";
 import { usersView } from "./views/users.js";
+import { passwordView } from "./views/password.js";
 
 const app = document.getElementById("app");
 let ctx = null;
@@ -40,6 +41,7 @@ function shell(main) {
       h("nav", {}, nav.map(([href, label]) => h("a", { href, class: isOn(href) ? "on" : "" }, label))),
       h("span", { class: "spacer" }),
       h("span", { class: "who" }, `${p.name || p.email}`),
+      h("a", { href: "#/password", class: "link nav-link" }, "שינוי סיסמה"),
       h("button", { class: "link", onclick: () => signOut(auth) }, "יציאה")),
     main
   );
@@ -55,7 +57,8 @@ async function route() {
   shell(main);
   const isAdmin = ctx.profile.role === "admin";
   try {
-    if (parts[0] === "fill" && !isAdmin) await fillView(main, ctx, { id: parts[1] || "new", step: parts[2] }, search);
+    if (parts[0] === "password") await passwordView(main, ctx);
+    else if (parts[0] === "fill" && !isAdmin) await fillView(main, ctx, { id: parts[1] || "new", step: parts[2] }, search);
     else if (parts[0] === "profile") await profileView(main, ctx, { id: parts[1] });
     else if (parts[0] === "child" && ctx.profile.role === "teacher")
       await childView(main, ctx, { gardenId: activeGardenId(ctx), code: decodeURIComponent(parts[1] || ""), mode: "staff" });
