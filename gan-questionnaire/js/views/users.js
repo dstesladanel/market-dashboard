@@ -11,24 +11,32 @@ export async function usersView(root, ctx) {
   const users = (await listUsers()).sort((a, b) => a.email.localeCompare(b.email));
   const gname = (id) => (ctx.gardens.find((g) => g.id === id) || { name: "?" }).name;
 
-  // יצירת חשבון Auth דרך אפליקציה משנית, כדי שהמנהלת לא תתנתק מהחשבון שלה
-  async function createAccount(email) {
+  // יצירת חשבון Auth דרך אפליקציה משנית, כדי שהמנהלת לא תתנתק מהחשבון שלה.
+  // עם סיסמה זמנית: החשבון נוצר והיא מוסרת ידנית. בלא סיסמה: נשלח מייל להגדרת סיסמה.
+  // מחזיר { created, mailed, mailError }
+  async function createAccount(email, password) {
     const sec = initializeApp(firebaseConfig, "sec" + Date.now());
     const sa = getAuth(sec);
+    const out = { created: false, mailed: false, mailError: null };
     try {
-      const tmp = crypto.randomUUID() + "Aa1!";
-      await createUserWithEmailAndPassword(sa, email, tmp);
-      await sendPasswordResetEmail(sa, email);
+      try {
+        await createUserWithEmailAndPassword(sa, email, password || crypto.randomUUID() + "Aa1!");
+        out.created = true;
+      } catch (e) {
+        if (e.code !== "auth/email-already-in-use") throw e;
+      }
+      // חשבון קיים (למשל מנסיון קודם) או חשבון חדש בלי סיסמה זמנית: שולחים קישור להגדרת סיסמה
+      if (!password || !out.created) {
+        try { await sendPasswordResetEmail(sa, email); out.mailed = true; } catch (e) { out.mailError = errText(e); }
+      }
       await signOut(sa);
-      return "created";
-    } catch (e) {
-      if (e.code === "auth/email-already-in-use") return "exists";
-      throw e;
+      return out;
     } finally { await deleteApp(sec); }
   }
 
   const email = h("input", { type: "email", dir: "ltr", placeholder: "אימייל", required: true });
   const name = h("input", { placeholder: "שם (לא חובה)" });
+  const tempPass = h("input", { type: "text", dir: "ltr", placeholder: "ריק = נשלח קישור במייל", autocomplete: "off" });
   const role = h("select", {}, ["teacher", "assistant", "admin"].map((r) => h("option", { value: r }, ROLE_LABELS[r])));
   const gBoxes = ctx.gardens.map((g) => h("label", { class: "check" }, h("input", { type: "checkbox", value: g.id }), g.name));
 
@@ -38,23 +46,34 @@ export async function usersView(root, ctx) {
       ev.preventDefault();
       const gs = gBoxes.map((l) => l.querySelector("input")).filter((i) => i.checked).map((i) => i.value);
       try {
-        const res = await createAccount(email.value.trim());
+        const pw = tempPass.value.trim();
+        if (pw && pw.length < 6) { toast("סיסמה זמנית חייבת להיות לפחות 6 תווים", "err"); return; }
+        const res = await createAccount(email.value.trim(), pw);
         await saveUser({ email: email.value, name: name.value, role: role.value, gardens: gs });
-        toast(res === "created" ? "המשתמשת נוצרה ונשלח אליה קישור להגדרת סיסמה" : "החשבון כבר קיים. ההרשאות עודכנו");
+        const addr = email.value.trim();
+        if (res.mailError) toast(`ההרשאה נשמרה, אבל שליחת המייל נכשלה: ${res.mailError}. אפשר לתת סיסמה זמנית.`, "err");
+        else if (res.mailed) toast(`נשלח מייל להגדרת סיסמה אל ${addr}. כדאי לבדוק גם בספאם.`);
+        else toast(`החשבון נוצר עם הסיסמה הזמנית שהוגדרה. מסרו אותה ל-${addr}.`);
         usersView(root, ctx);
       } catch (e) { toast(errText(e), "err"); }
     },
   },
     h("h3", {}, "הוספת משתמשת"),
-    h("div", { class: "grid2" }, h("label", {}, "אימייל", email), h("label", {}, "שם", name), h("label", {}, "תפקיד", role)),
+    h("div", { class: "grid2" }, h("label", {}, "אימייל", email), h("label", {}, "שם", name), h("label", {}, "תפקיד", role), h("label", {}, "סיסמה זמנית (לא חובה)", tempPass)),
     h("div", { class: "chips" }, ctx.gardens.length ? gBoxes : h("span", { class: "muted" }, "יש להוסיף גנים קודם")),
-    h("button", { class: "btn primary", type: "submit" }, "הוספה ושליחת קישור")
+    h("button", { class: "btn primary", type: "submit" }, "הוספה")
   );
 
   const table = h("table", { class: "table" },
     h("thead", {}, h("tr", {}, ["אימייל", "שם", "תפקיד", "גנים", ""].map((t) => h("th", {}, t)))),
     h("tbody", {}, users.map((u) => h("tr", {},
-      h("td", { dir: "ltr" }, u.email), h("td", {}, u.name), h("td", {}, ROLE_LABELS[u.role]),
+      h("td", { dir: "ltr" }, u.email), h("td", {}, u.name), h("td", {}, h("select", {
+        disabled: u.email === ctx.profile.email, title: u.email === ctx.profile.email ? "לא ניתן לשנות את התפקיד של עצמך" : "",
+        onchange: async (e) => {
+          if (e.target.value === "admin" && !confirm(`להפוך את ${u.email} למנהלת מערך? היא תראה את כל הגנים והתשובות.`)) { e.target.value = u.role; return; }
+          await saveUser({ ...u, role: e.target.value }); toast("התפקיד עודכן"); usersView(root, ctx);
+        },
+      }, Object.entries(ROLE_LABELS).map(([k, v]) => h("option", { value: k, selected: k === u.role }, v)))),
       h("td", {}, u.role === "admin" ? "כולם" : (u.gardens || []).map(gname).join(", ")),
       h("td", { class: "actions" },
         h("button", { class: "btn small", onclick: async () => {

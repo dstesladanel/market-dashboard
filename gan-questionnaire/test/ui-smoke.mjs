@@ -47,14 +47,22 @@ await page.getByRole("button", { name: "הוספת גן" }).click();
 await page.waitForSelector("text=הוספת משתמשת");
 await page.getByPlaceholder("אימייל").fill("teacher@test.il");
 await page.locator("form.card input[type=checkbox]").first().check();
-await page.getByRole("button", { name: "הוספה ושליחת קישור" }).click();
+await page.getByRole("button", { name: "הוספה", exact: true }).click();
 await page.waitForSelector("text=teacher@test.il");
 await page.getByPlaceholder("אימייל").fill("aide@test.il");
 await page.locator("form.card select").selectOption("assistant");
 await page.locator("form.card input[type=checkbox]").first().check();
-await page.getByRole("button", { name: "הוספה ושליחת קישור" }).click();
+await page.getByRole("button", { name: "הוספה", exact: true }).click();
 await page.waitForSelector("text=aide@test.il");
-step("גנים ומשתמשות נוספו");
+// משתמשת עם סיסמה זמנית (בלי מייל)
+await page.getByPlaceholder("אימייל").fill("pw@test.il");
+await page.getByPlaceholder("ריק = נשלח קישור במייל").fill("abc12345");
+await page.locator("form.card select").selectOption("teacher");
+await page.getByRole("button", { name: "הוספה", exact: true }).click();
+await page.waitForSelector("text=pw@test.il");
+const resets = await page.evaluate(() => window.__resets || []);
+assert.ok(resets.includes("teacher@test.il") && !resets.includes("pw@test.il"), "מייל נשלח רק למי שלא קיבלה סיסמה זמנית");
+step("גנים ומשתמשות נוספו (כולל סיסמה זמנית בלי מייל)");
 
 // ---- עריכת שאלון ----
 await page.getByRole("link", { name: "עריכת השאלון" }).click();
@@ -213,6 +221,18 @@ assert.match(await page.locator("body").innerText(), /טקסט בדיקה/);
 assert.equal(await page.getByRole("link", { name: "מילוי חוזר" }).count(), 0);
 await page.screenshot({ path: SHOTS + "admin-child.png", fullPage: true });
 step("מנהלת: דשבורד גן וילד, פרופיל מלא ותשובות פרטניות ודוחות מלאים");
+
+// ---- שינוי תפקיד: pw הופכת למנהלת, נכנסת עם הסיסמה הזמנית ורואה את כל המערך ----
+await page.getByRole("link", { name: "גנים ומשתמשות" }).click();
+await page.waitForSelector("text=pw@test.il");
+await page.locator("tr", { hasText: "pw@test.il" }).locator("select").first().selectOption("admin");
+await page.waitForSelector("text=התפקיד עודכן");
+await page.getByRole("button", { name: "יציאה" }).click();
+await page.locator("input[type=email]").fill("pw@test.il");
+await page.locator("input[type=password]").fill("abc12345");
+await page.getByRole("button", { name: "כניסה" }).click();
+await page.waitForSelector("text=תמונת מערך");
+step("מנהלת נוספת: תפקיד שונה, נכנסה עם סיסמה זמנית");
 
 assert.deepEqual(errors, [], "console errors: " + errors.join("; "));
 console.log("UI smoke passed");
