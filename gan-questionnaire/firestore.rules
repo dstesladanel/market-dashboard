@@ -1,0 +1,79 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+
+    function signedIn() {
+      return request.auth != null && request.auth.token.email != null;
+    }
+    function myEmail() {
+      return request.auth.token.email.lower();
+    }
+    function profilePath() {
+      return /databases/$(db)/documents/users/$(myEmail());
+    }
+    function hasProfile() {
+      return signedIn() && exists(profilePath());
+    }
+    function me() {
+      return get(profilePath()).data;
+    }
+    function isAdmin() {
+      return hasProfile() && me().role == 'admin';
+    }
+    // גננת או סייעת ששייכות לגן
+    function isStaff(gardenId) {
+      return hasProfile() && me().role in ['teacher', 'assistant'] && gardenId in me().gardens;
+    }
+    // הקמה ראשונה: עד שנוצר config/bootstrap, המשתמש הראשון יכול להפוך למנהלת
+    function setupOpen() {
+      return signedIn() && !exists(/databases/$(db)/documents/config/bootstrap);
+    }
+
+    match /config/bootstrap {
+      allow get: if true;
+      allow create: if setupOpen();
+    }
+    match /config/current {
+      allow read: if hasProfile();
+      allow write: if isAdmin() || setupOpen();
+    }
+
+    match /users/{email} {
+      allow get: if signedIn() && (email == myEmail() || isAdmin());
+      allow list: if isAdmin();
+      allow write: if isAdmin()
+        || (setupOpen() && email == myEmail() && request.resource.data.role == 'admin');
+    }
+
+    match /gardens/{id} {
+      allow read: if hasProfile();
+      allow write: if isAdmin();
+    }
+
+    // גרסאות הטופס אינן משתנות אחרי פרסום. עריכה יוצרת גרסה חדשה.
+    match /forms/{id} {
+      allow read: if hasProfile();
+      allow create: if isAdmin() || setupOpen();
+    }
+
+    // תיק הילד (כל התשובות והטקסטים החופשיים): רק צוות הגן.
+    // המנהלת אינה קוראת את responses.
+    match /responses/{id} {
+      allow read: if isStaff(resource.data.gardenId);
+      allow create: if isStaff(request.resource.data.gardenId);
+      allow update: if isStaff(resource.data.gardenId)
+        && request.resource.data.gardenId == resource.data.gardenId;
+      allow delete: if hasProfile() && me().role == 'teacher' && isStaff(resource.data.gardenId);
+    }
+
+    // סיכום ללא תשובות פרטניות וללא טקסט חופשי: ממוצע לתחום ודגלי בטיחות.
+    // המנהלת קוראת רק מכאן.
+    match /summaries/{id} {
+      allow read: if isAdmin() || isStaff(resource.data.gardenId);
+      allow create: if hasProfile() && me().role == 'teacher' && isStaff(request.resource.data.gardenId);
+      allow update: if hasProfile() && me().role == 'teacher' && isStaff(resource.data.gardenId)
+        && request.resource.data.gardenId == resource.data.gardenId;
+      allow delete: if hasProfile() && me().role == 'teacher' && isStaff(resource.data.gardenId);
+    }
+  }
+}
