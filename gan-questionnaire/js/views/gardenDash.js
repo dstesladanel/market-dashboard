@@ -91,9 +91,9 @@ export async function gardenDashboard(root, ctx, { gardenId, mode, gardenChoices
     flagged.length ? h("div", { class: "card" },
       h("h3", {}, `ילדים שסומנו בפריט בטיחות (${flagged.length})`),
       h("p", { class: "chips" }, flagCounts(flagged).map(([t, n]) => h("span", { class: "chip" }, `${t} · ${n}`))),
-      h("table", { class: "table compact" }, h("tbody", {}, flagged.map((s) => h("tr", {},
-        h("td", { class: "code" }, h("a", { href: childHref(s.childCode) }, s.childCode)),
-        h("td", {}, fmtDate(s.date)), h("td", {}, s.flags.map((f) => f.text).join(" · ")))))))
+      h("table", { class: "table compact stack" }, h("tbody", {}, flagged.map((s) => h("tr", {},
+        h("td", { "data-label": "מספר ילד", class: "code" }, h("a", { href: childHref(s.childCode) }, s.childCode)),
+        h("td", { "data-label": "תאריך" }, fmtDate(s.date)), h("td", { "data-label": "פריטים שסומנו" }, s.flags.map((f) => f.text).join(" · ")))))))
       : null
   );
 }

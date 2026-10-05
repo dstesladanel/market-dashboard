@@ -77,9 +77,9 @@ await page.waitForSelector("text=עריכת השאלון · גרסה נוכחי�
 assert.equal(await page.locator(".edit-domain").count(), 8);
 await page.locator(".edit-domain").first().getByRole("button", { name: "+ היגד" }).click();
 const newItem = page.locator(".edit-domain").first().locator(".edit-item").last();
-await newItem.locator("input").nth(0).fill("היגד חדש של המנהלת");
-await newItem.locator("input").nth(1).fill("נמוך");
-await newItem.locator("input").nth(2).fill("גבוה");
+await newItem.locator("textarea").fill("היגד חדש של המנהלת");
+await newItem.getByLabel("עוגן לציון 1").fill("נמוך");
+await newItem.getByLabel("עוגן לציון 5").fill("גבוה");
 page.on("dialog", (d) => d.accept());
 await page.getByRole("button", { name: "פרסום גרסה חדשה" }).click();
 await page.waitForSelector("text=גרסה נוכחית 2");

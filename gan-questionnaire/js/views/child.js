@@ -74,11 +74,11 @@ export async function childView(root, ctx, { gardenId, code, mode }) {
 
     h("div", { class: "card" },
       h("h3", {}, "מילויים"),
-      h("table", { class: "table compact" },
+      h("table", { class: "table compact stack" },
         h("thead", {}, h("tr", {}, ["תאריך", "גיל", "גרסת טופס", "פריטי בטיחות", ""].map((t) => h("th", {}, t)))),
         h("tbody", {}, [...history].reverse().map((s) => h("tr", {},
-          h("td", {}, fmtDate(s.date)), h("td", {}, s.age), h("td", {}, s.formVersion),
-          h("td", {}, (s.flags || []).map((f) => f.text).join(" · ")),
+          h("td", { "data-label": "תאריך" }, fmtDate(s.date)), h("td", { "data-label": "גיל" }, s.age), h("td", { "data-label": "גרסת טופס" }, s.formVersion),
+          h("td", { "data-label": "פריטי בטיחות" }, (s.flags || []).map((f) => f.text).join(" · ") || "—"),
           h("td", {}, h("a", { class: "btn small", href: `#/profile/${s.id}` }, "פרופיל מלא ותשובות")))))))
   );
 }

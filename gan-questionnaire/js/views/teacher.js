@@ -67,18 +67,18 @@ export async function teacherView(root, ctx) {
   );
 
   list.append(
-    h("table", { class: "table" },
+    h("table", { class: "table stack" },
       h("thead", {}, h("tr", {}, ["מספר ילד", "גיל", "מילויים", "אחרון", "סטטוס", ""].map((t) => h("th", {}, t)))),
       h("tbody", {}, rows.map(([code, rs]) => {
         const last = rs[0];
         const open = last.status === "final" ? `#/profile/${last.id}` : `#/fill/${last.id}/1`;
         return h("tr", {},
-          h("td", { class: "code" }, isAssistant ? code : h("a", { href: `#/child/${encodeURIComponent(code)}` }, code)),
-          h("td", {}, last.age),
-          h("td", {}, rs.length),
-          h("td", {}, fmtDate(last.date)),
-          h("td", {}, h("span", { class: "badge " + last.status }, last.status === "final" ? "הושלם" : "טיוטה")),
-          h("td", { class: "actions" },
+          h("td", { "data-label": "מספר ילד", class: "code" }, isAssistant ? code : h("a", { href: `#/child/${encodeURIComponent(code)}` }, code)),
+          h("td", { "data-label": "גיל" }, last.age),
+          h("td", { "data-label": "מילויים" }, rs.length),
+          h("td", { "data-label": "אחרון" }, fmtDate(last.date)),
+          h("td", { "data-label": "סטטוס" }, h("span", { class: "badge " + last.status }, last.status === "final" ? "הושלם" : "טיוטה")),
+          h("td", { class: "actions", "data-label": "פעולות" },
             h("a", { class: "btn small", href: open }, last.status === "final" ? "פרופיל" : "המשך מילוי"),
             !isAssistant && h("a", { class: "btn small", href: `#/fill/new/0?code=${encodeURIComponent(code)}` }, "מילוי חוזר"),
             !isAssistant && h("button", { class: "btn small", onclick: () => downloadChildReport(ctx, { gardenId: active, code, level: "staff" }) }, "דוח Excel"),
