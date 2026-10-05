@@ -77,7 +77,8 @@ export async function loginView(root) {
           try { await sendPasswordResetEmail(auth, email.value.trim()); toast("נשלח קישור להגדרת סיסמה"); }
           catch (e) { showErr(e); }
         },
-      }, "קבלת קישור להגדרת סיסמה / שכחתי סיסמה"));
+      }, "שכחתי סיסמה (שליחת מייל)"));
+      box.append(h("p", { class: "muted small" }, "אין לכם סיסמה או שאבדה? פנו למנהלת המערך."));
     }
     if (setupOpen) {
       box.append(h("button", {
