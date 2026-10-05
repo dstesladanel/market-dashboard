@@ -56,7 +56,7 @@ async function route() {
   const isAdmin = ctx.profile.role === "admin";
   try {
     if (parts[0] === "fill" && !isAdmin) await fillView(main, ctx, { id: parts[1] || "new", step: parts[2] }, search);
-    else if (parts[0] === "profile" && !isAdmin) await profileView(main, ctx, { id: parts[1] });
+    else if (parts[0] === "profile") await profileView(main, ctx, { id: parts[1] });
     else if (parts[0] === "child" && ctx.profile.role === "teacher")
       await childView(main, ctx, { gardenId: activeGardenId(ctx), code: decodeURIComponent(parts[1] || ""), mode: "staff" });
     else if (parts[0] === "children" && ctx.profile.role === "teacher") await teacherView(main, ctx);

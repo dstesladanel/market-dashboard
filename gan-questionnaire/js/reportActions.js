@@ -1,6 +1,6 @@
 // הורדות דוחות לפי בקשה. כל לחיצה קוראת את הנתונים העדכניים ובונה קובץ חדש.
 import { toast } from "./ui.js";
-import { listResponses, listGardenSummaries, listSummaries, getForm } from "./store.js";
+import { listResponses, listAllResponses, listGardenSummaries, listSummaries, getForm } from "./store.js";
 import { domainList, childHistory } from "./analytics.js";
 import { childReport, gardenReport, systemReport, downloadXlsx, fileSafe } from "./reports.js";
 
@@ -39,7 +39,10 @@ export const downloadGardenReport = (ctx, { gardenId, level }) => run("דוח ג
 
 export const downloadSystemReport = (ctx) => run("דוח מערך", async () => {
   const [form, summaries] = [await ctx.currentForm(), await listSummaries()];
+  const rs = (await listAllResponses()).filter((r) => r.status === "final")
+    .sort((a, b) => a.date.localeCompare(b.date) || a.createdAt - b.createdAt);
+  const fills = await Promise.all(rs.map(async (response) => ({ response, form: await getForm(response.formId) })));
   await downloadXlsx(`דוח-מערך-${day()}.xlsx`, systemReport({
-    gardens: ctx.gardens, domains: domainList(form, summaries), summaries,
+    gardens: ctx.gardens, domains: domainList(form, summaries), summaries, fills,
   }));
 });

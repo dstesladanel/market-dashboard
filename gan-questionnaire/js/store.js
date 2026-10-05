@@ -92,6 +92,9 @@ export async function listResponses(gardenId) {
   const snap = await getDocs(query(collection(db, "responses"), where("gardenId", "==", gardenId)));
   return snap.docs.map(withId).sort((a, b) => (b.date || "").localeCompare(a.date || "") || b.createdAt - a.createdAt);
 }
+export async function listAllResponses() {
+  return (await getDocs(collection(db, "responses"))).docs.map(withId);
+}
 export async function getResponse(id) {
   const s = await getDoc(doc(db, "responses", id));
   return s.exists() ? withId(s) : null;

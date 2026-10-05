@@ -5,6 +5,7 @@ import { computeSummary, deltas } from "../scoring.js";
 
 export async function profileView(root, ctx, params) {
   clear(root);
+  const admin = ctx.profile.role === "admin";
   const resp = await getResponse(params.id);
   if (!resp) { root.append(h("div", { class: "card" }, "המילוי לא נמצא")); return; }
   const form = await getForm(resp.formId);
@@ -38,9 +39,9 @@ export async function profileView(root, ctx, params) {
 
   root.append(
     h("div", { class: "toolbar" },
-      h("a", { class: "btn", href: "#/children" }, "חזרה לרשימה"),
+      h("a", { class: "btn", href: admin ? `#/admin/garden/${resp.gardenId}` : "#/children" }, admin ? "חזרה לגן" : "חזרה לרשימה"),
       h("span", { class: "spacer" }),
-      h("a", { class: "btn", href: `#/child/${encodeURIComponent(resp.childCode)}` }, "דשבורד הילד"),
+      h("a", { class: "btn", href: admin ? `#/admin/child/${resp.gardenId}/${encodeURIComponent(resp.childCode)}` : `#/child/${encodeURIComponent(resp.childCode)}` }, "דשבורד הילד"),
       h("button", { class: "btn", onclick: () => downloadChildReport(ctx, { gardenId: resp.gardenId, code: resp.childCode, level: "staff" }) }, "הורדת דוח ילד (Excel)"),
       window.print && h("button", { class: "btn", onclick: () => window.print() }, "הדפסה")
     ),

@@ -123,7 +123,7 @@ export function gardenReport({ garden, domains, summaries, fills }) {
 }
 
 // ---------- דוח מערך (מנהלת) ----------
-export function systemReport({ gardens, domains, summaries }) {
+export function systemReport({ gardens, domains, summaries, fills }) {
   const gName = (id) => (gardens.find((g) => g.id === id) || { name: "גן שנמחק" }).name;
   const latest = latestPerChild(summaries);
   const flagged = flaggedChildren(summaries);
@@ -158,6 +158,19 @@ export function systemReport({ gardens, domains, summaries }) {
     name: "פריטי בטיחות",
     rows: [["פריט", "מספר ילדים"], ...counts.map(([t, n]) => [t, n])],
   });
+  if (fills && fills.length) {
+    const items = collectItems(fills.map((f) => f.form));
+    const sorted = [...fills].sort((a, b) => gName(a.response.gardenId).localeCompare(gName(b.response.gardenId), "he")
+      || a.response.childCode.localeCompare(b.response.childCode, "he", { numeric: true }) || a.response.date.localeCompare(b.response.date));
+    sheets.push({
+      name: "תשובות מלאות",
+      rows: [
+        ["גן", "מספר ילד", "גיל", "תאריך", "ממלא", "גרסת טופס", ...items.map((i) => `${i.domain} · ${i.text}`)],
+        ...sorted.map(({ response: r }) => [gName(r.gardenId), r.childCode, r.age, r.date, r.fillerRole, r.formVersion,
+          ...items.map((i) => yn((r.answers || {})[i.id]))]),
+      ],
+    });
+  }
   return sheets;
 }
 

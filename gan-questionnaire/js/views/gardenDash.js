@@ -10,7 +10,7 @@ export const shade = (avg) => (avg == null ? "transparent" : `rgba(31,111,175,${
 export async function gardenDashboard(root, ctx, { gardenId, mode, gardenChoices, onPick }) {
   clear(root);
   const garden = ctx.gardens.find((g) => g.id === gardenId);
-  const level = mode === "staff" ? "staff" : "admin";
+  const level = "staff"; // גם מנהלת המערך מקבלת דוחות עם תשובות פרטניות
   const childHref = (code) => mode === "staff" ? `#/child/${encodeURIComponent(code)}` : `#/admin/child/${gardenId}/${encodeURIComponent(code)}`;
 
   const picker = gardenChoices && gardenChoices.length > 1

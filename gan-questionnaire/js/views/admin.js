@@ -5,7 +5,7 @@ import { radar, lines, legend, SERIES_COLORS } from "../charts.js";
 import { downloadSystemReport, downloadGardenReport } from "../reportActions.js";
 import { gardenDashboard, kpi, shade } from "./gardenDash.js";
 
-// המנהלת קוראת רק את אוסף summaries: ממוצע לתחום ודגלי בטיחות, בלי תשובות פרטניות ובלי טקסט חופשי.
+// הדשבורדים נבנים מאוסף summaries (ממוצע לתחום ודגלי בטיחות). לתשובות הפרטניות המנהלת מגיעה דרך דף הילד.
 export async function dashboardView(root, ctx) {
   clear(root);
   const [form, all] = [await ctx.currentForm(), await listSummaries()];
@@ -44,7 +44,7 @@ export async function dashboardView(root, ctx) {
         }, r.avg != null ? r.avg.toFixed(1) : "—", st.weakest && st.weakest.id === r.id ? " ▼" : "")),
         h("td", { class: "actions" },
           h("a", { class: "btn small", href: `#/admin/garden/${g.id}` }, "דשבורד גן"),
-          h("button", { class: "btn small", onclick: () => downloadGardenReport(ctx, { gardenId: g.id, level: "admin" }) }, "דוח Excel")))),
+          h("button", { class: "btn small", onclick: () => downloadGardenReport(ctx, { gardenId: g.id, level: "staff" }) }, "דוח Excel")))),
       h("tr", { class: "total" }, h("td", {}, "כלל המערך"), h("td", {}, sys.children),
         sys.rows.map((r) => h("td", { class: "num", style: `background:${shade(r.avg)}` }, r.avg != null ? r.avg.toFixed(1) : "—")), h("td", {}))));
 

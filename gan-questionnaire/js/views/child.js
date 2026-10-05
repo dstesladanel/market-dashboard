@@ -9,7 +9,7 @@ import { downloadChildReport } from "../reportActions.js";
 // צוות הגן מקבל בנוסף קישור לפרופיל המלא עם התשובות הפרטניות והטקסט החופשי.
 export async function childView(root, ctx, { gardenId, code, mode }) {
   clear(root);
-  const level = mode === "staff" ? "staff" : "admin";
+  const level = "staff"; // גם מנהלת המערך מקבלת דוחות עם תשובות פרטניות
   const back = mode === "staff" ? "#/" : `#/admin/garden/${gardenId}`;
   const garden = ctx.gardens.find((g) => g.id === gardenId);
   const [form, all] = [await ctx.currentForm(), await listGardenSummaries(gardenId)];
@@ -31,8 +31,7 @@ export async function childView(root, ctx, { gardenId, code, mode }) {
       mode === "staff" ? h("a", { class: "btn", href: `#/fill/new/0?code=${encodeURIComponent(code)}` }, "מילוי חוזר") : null,
       h("button", { class: "btn primary", onclick: () => downloadChildReport(ctx, { gardenId, code, level }) }, "הורדת דוח ילד (Excel)")),
     h("p", { class: "muted" },
-      `גיל ${cur.age} · מילוי אחרון ${fmtDate(cur.date)} · ${history.length} מילויים` +
-      (mode === "staff" ? "" : " · תצוגת סיכום: בלי תשובות פרטניות ובלי טקסט חופשי")),
+      `גיל ${cur.age} · מילוי אחרון ${fmtDate(cur.date)} · ${history.length} מילויים`),
     h("p", { class: "notice" }, "אין ציון כולל. זה פרופיל לפי תחום, ולא אבחון או קביעת זכאות."),
 
     h("div", { class: "grid-charts" },
@@ -80,6 +79,6 @@ export async function childView(root, ctx, { gardenId, code, mode }) {
         h("tbody", {}, [...history].reverse().map((s) => h("tr", {},
           h("td", {}, fmtDate(s.date)), h("td", {}, s.age), h("td", {}, s.formVersion),
           h("td", {}, (s.flags || []).map((f) => f.text).join(" · ")),
-          h("td", {}, mode === "staff" ? h("a", { class: "btn small", href: `#/profile/${s.id}` }, "פרופיל מלא ותשובות") : ""))))))
+          h("td", {}, h("a", { class: "btn small", href: `#/profile/${s.id}` }, "פרופיל מלא ותשובות")))))))
   );
 }

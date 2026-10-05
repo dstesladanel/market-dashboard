@@ -56,18 +56,17 @@ service cloud.firestore {
       allow create: if isAdmin() || setupOpen();
     }
 
-    // תיק הילד (כל התשובות והטקסטים החופשיים): רק צוות הגן.
-    // המנהלת אינה קוראת את responses.
+    // תיק הילד (כל התשובות והטקסטים החופשיים): צוות הגן וגם מנהלת המערך (קריאה בלבד).
+    // מילוי, עדכון ומחיקה נשארים לצוות הגן.
     match /responses/{id} {
-      allow read: if isStaff(resource.data.gardenId);
+      allow read: if isAdmin() || isStaff(resource.data.gardenId);
       allow create: if isStaff(request.resource.data.gardenId);
       allow update: if isStaff(resource.data.gardenId)
         && request.resource.data.gardenId == resource.data.gardenId;
       allow delete: if hasProfile() && me().role == 'teacher' && isStaff(resource.data.gardenId);
     }
 
-    // סיכום ללא תשובות פרטניות וללא טקסט חופשי: ממוצע לתחום ודגלי בטיחות.
-    // המנהלת קוראת רק מכאן.
+    // סיכום קל לדשבורדים: ממוצע לתחום ודגלי בטיחות, בלי תשובות פרטניות.
     match /summaries/{id} {
       allow read: if isAdmin() || isStaff(resource.data.gardenId);
       allow create: if hasProfile() && me().role == 'teacher' && isStaff(request.resource.data.gardenId);
