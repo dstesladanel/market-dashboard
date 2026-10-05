@@ -39,7 +39,11 @@
 node test/scoring.test.mjs      # ממוצעים, 0 לא נספר, דגלים, סייעת, השוואה
 node test/reports.test.mjs      # בניית הדוחות והנתונים לדשבורדים
 ```
-`test/ui-smoke.mjs` מריץ את כל הזרימה בדפדפן מול Firebase מדומה בזיכרון (`test/fake-firebase.mjs`). הוא בודק ממשק ודוחות, לא כללי אבטחה: את `firestore.rules` כדאי לבדוק ב-Firebase Emulator לפני שימוש אמיתי.
+```
+npm i -D firebase-tools @firebase/rules-unit-testing firebase
+npx firebase emulators:exec --only firestore --project demo-gan "node test/rules.test.mjs"   # 55 בדיקות כללי אבטחה
+```
+`test/ui-smoke.mjs` מריץ את כל הזרימה בדפדפן מול Firebase מדומה בזיכרון (`test/fake-firebase.mjs`). הוא בודק ממשק ודוחות. כללי האבטחה נבדקים בנפרד ב-`test/rules.test.mjs` מול Firebase Emulator.
 
 ## מגבלות ידועות
 
