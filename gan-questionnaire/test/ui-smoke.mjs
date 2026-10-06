@@ -168,11 +168,12 @@ await page.getByRole("button", { name: "יצירת טיוטת דוח" }).click()
 await page.waitForSelector(".report");
 const reportText = await page.locator(".report").innerText();
 assert.match(reportText, /דנה כהן/);
-assert.match(reportText, /תמונת מצב כללית/);
-assert.match(reportText, /חוזקות לשימור ולפיתוח/);
-assert.match(reportText, /תובנות והמלצות להמשך הטיפול/);
-const overview = await page.locator(".report .rsec").first().locator("textarea").first().inputValue();
-assert.match(overview, /הילדה/, "ניסוח בנקבה");
+assert.match(reportText, /השתתפות כללית/);
+assert.match(reportText, /לפי תחומים/);
+assert.match(reportText, /יעד לשליש/);
+const allValues = await page.locator(".report textarea").evaluateAll((els) => els.map((e) => e.value).join("\n"));
+assert.match(allValues, /אוכלת|משתתפת|מגיבה/, "ניסוח בנקבה");
+assert.match(allValues, /חוזק בתחום:/, "כל הפריטים בציון 4: חוזק אחד בכל תחום");
 // עריכה: משנים פסקה ומוסיפים נקודה בהערות הצוות
 await page.locator(".report .rsec").first().locator("textarea").first().fill("פסקה שנערכה על ידי הגננת.");
 const notes = page.locator(".report .rsec").last();

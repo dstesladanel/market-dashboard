@@ -94,7 +94,11 @@ export async function reportView(root, ctx, params) {
     } else {
       if (sec.intro !== undefined && sec.intro !== "") body.push(area(sec.intro, (v) => { sec.intro = v; }, "para intro"));
       if (sec.kind === "groups") {
-        for (const grp of sec.groups) body.push(h("div", { class: "grp" }, h("div", { class: "grp-title" }, grp.title), bulletList(grp.bullets)));
+        for (const grp of sec.groups) {
+          // פסקה רציפה לתחום (prose) או רשימת נקודות
+          body.push(h("div", { class: "grp" }, h("div", { class: "grp-title" }, grp.title),
+            grp.prose ? area(grp.bullets[0] || "", (v) => { grp.bullets[0] = v; }, "para") : bulletList(grp.bullets)));
+        }
         if (!sec.groups.length) body.push(h("div", { class: "no-print muted small" }, "אין תוכן לסעיף זה."));
       } else {
         body.push(bulletList(sec.bullets));
@@ -134,6 +138,7 @@ export async function reportView(root, ctx, params) {
           h("div", { class: "rtitle" }, "דוח תפקודי לצוות הגן"),
           h("div", { class: "rsub" }, "מערך גני החינוך המיוחד · חריש"),
           nameLine,
+          h("div", { class: "rage" }, report.ageLine),
           h("table", { class: "rmeta" }, h("tbody", {}, chunk(report.meta, 3).map((row) =>
             h("tr", {}, row.flatMap(([k, v]) => [h("th", {}, k), h("td", {}, v)])))))),
         h("section", { class: "rprofile" },
