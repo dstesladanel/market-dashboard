@@ -219,3 +219,4 @@ details > summary::-webkit-details-marker { display: none; }
 .pdf-mode .brow { display: flex; align-items: flex-start; gap: .3rem; }
 .pdf-mode .brow .pdftext { flex: 1; }
 .pdf-mode .rchart .chart { max-width: 300px; }
+.top .build { font-size: .7rem; color: #7d889a; } .build-line { text-align: center; margin: .2rem 0 0; }

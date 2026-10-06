@@ -80,6 +80,7 @@ export async function loginView(root) {
       }, "שכחתי סיסמה (שליחת מייל)"));
       box.append(h("p", { class: "muted small" }, "אין לכם סיסמה או שאבדה? פנו למנהלת המערך."));
     }
+    box.append(h("p", { class: "muted small build-line" }, "גרסה " + (window.__BUILD || "dev")));
     if (setupOpen) {
       box.append(h("button", {
         class: "link", type: "button",

@@ -43,6 +43,7 @@ function shell(main) {
       h("span", { class: "spacer" }),
       h("span", { class: "who" }, `${p.name || p.email}`),
       h("a", { href: "#/password", class: "link nav-link" }, "שינוי סיסמה"),
+      h("span", { class: "build", title: "גרסת האתר. אם אינה זהה אצל כולם, לרענן בלשונית פרטית" }, "v" + (window.__BUILD || "dev")),
       h("button", { class: "link", onclick: () => signOut(auth) }, "יציאה")),
     main
   );
