@@ -180,7 +180,7 @@ details > summary::-webkit-details-marker { display: none; }
 .report { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 1.4rem 1.6rem; max-width: 820px; margin: 0 auto 2rem; line-height: 1.65; }
 .rhead { border-bottom: 3px solid var(--accent); padding-bottom: .6rem; margin-bottom: 1rem; }
 .rtitle { font-size: 1.7rem; font-weight: 800; } .rsub { color: var(--muted); }
-.rname { font-size: 1.2rem; font-weight: 700; margin-top: .4rem; }
+.rname { font-size: 1.2rem; font-weight: 700; margin-top: .4rem; } .rage { color: var(--muted); }
 .rmeta { width: 100%; border-collapse: collapse; margin-top: .6rem; font-size: .92rem; }
 .rmeta th { color: var(--muted); font-weight: 500; text-align: right; padding: .15rem .4rem .15rem .2rem; white-space: nowrap; }
 .rmeta td { font-weight: 600; padding: .15rem .8rem .15rem .2rem; }
