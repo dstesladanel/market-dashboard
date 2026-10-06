@@ -212,3 +212,10 @@ details > summary::-webkit-details-marker { display: none; }
   .rchart .chart { max-width: 340px; }
   * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+
+/* עותק הדוח שמצולם ל-PDF: שדות הטקסט הופכים לטקסט רגיל */
+.pdf-mode { font-size: 14px; line-height: 1.6; color: #1d2430; }
+.pdf-mode .pdftext { white-space: pre-wrap; padding: .1rem .3rem; line-height: 1.6; font: inherit; }
+.pdf-mode .brow { display: flex; align-items: flex-start; gap: .3rem; }
+.pdf-mode .brow .pdftext { flex: 1; }
+.pdf-mode .rchart .chart { max-width: 300px; }
