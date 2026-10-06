@@ -2,6 +2,7 @@ import { h, clear, toast } from "../ui.js";
 import { getResponse, getForm, listResponses } from "../store.js";
 import { buildReport, GENDERS } from "../narrative.js";
 import { radar, legend, SERIES_COLORS } from "../charts.js";
+import { downloadReportPdf } from "../pdf.js";
 
 // דוח תפקודי מילולי לצוות ולמנהלת.
 // הטיוטה נוצרת בדפדפן מתוך התשובות. שם הילד ומגדר מוקלדים כאן בלבד: הם לא נשלחים ולא נשמרים בשום מקום
@@ -123,7 +124,7 @@ export async function reportView(root, ctx, params) {
         h("span", { class: "spacer" }),
         h("button", { class: "btn", onclick: () => { if (!dirty || confirm("שינוי הפרטים ייצור את הטיוטה מחדש ויימחקו העריכות. להמשיך?")) { dirty = false; setup(); } } }, "שינוי מגדר ושם"),
         h("button", {
-          class: "btn primary",
+          class: "btn",
           onclick: () => {
             const old = document.title;
             document.title = `דוח-תפקודי-${resp.childCode}-${resp.date}`; // בלי שם הילד: שם הקובץ משתמש במספר בלבד
@@ -131,8 +132,23 @@ export async function reportView(root, ctx, params) {
             window.print();
             setTimeout(() => { document.title = old; }, 1500);
           },
-        }, "הורדה / הדפסה (PDF)")),
-      h("p", { class: "notice no-print" }, "הטקסט הוא טיוטה שנוצרה מהנתונים: כל פסקה ונקודה ניתנות לעריכה, מחיקה והוספה. בחלון ההדפסה יש לבחור \"שמירה כ-PDF\". העריכות, השם והמגדר אינם נשמרים במערכת."),
+        }, "הדפסה"),
+        h("button", {
+          class: "btn primary",
+          onclick: async (e) => {
+            const btn = e.currentTarget;
+            btn.disabled = true;
+            toast("מכין קובץ PDF…");
+            try {
+              fitAll();
+              // שם הקובץ במספר בלבד, בלי שם הילד
+              const pages = await downloadReportPdf(root.querySelector(".report"), `functional-report-${resp.childCode}-${resp.date}.pdf`);
+              toast(`הקובץ ירד (${pages} עמודים)`);
+            } catch (err) { console.error(err); toast(err.message || "יצירת ה-PDF נכשלה. נסו \"הדפסה\".", "err"); }
+            btn.disabled = false;
+          },
+        }, "הורדת PDF")),
+      h("p", { class: "notice no-print" }, "הטקסט הוא טיוטה שנוצרה מהנתונים: כל פסקה ונקודה ניתנות לעריכה, מחיקה והוספה. \"הורדת PDF\" מורידה קובץ ישירות (הטקסט בו הוא תמונה, ולא ניתן לסימון). \"הדפסה\" פותחת את חלון ההדפסה, ושם אפשר לבחור שמירה כ-PDF עם טקסט. העריכות, השם והמגדר אינם נשמרים במערכת."),
       h("article", { class: "report", dir: "rtl" },
         h("header", { class: "rhead" },
           h("div", { class: "rtitle" }, "דוח תפקודי לצוות הגן"),

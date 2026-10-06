@@ -17,6 +17,8 @@ await page.route("**/js/firebase-config.js", (r) => r.fulfill(js(configJs)));
 await page.route("https://fonts.googleapis.com/**", (r) => r.fulfill({ status: 200, body: "" }));
 const XL = "/tmp/claude-0/-home-user-market-dashboard/bb8c23c7-3b19-5d69-bf17-137b43a7024b/scratchpad/xl/node_modules/xlsx";
 await page.route("https://cdnjs.cloudflare.com/**/xlsx.full.min.js", (r) => r.fulfill({ status: 200, contentType: "text/javascript", path: XL + "/dist/xlsx.full.min.js" }));
+await page.route("https://cdnjs.cloudflare.com/**/html2canvas.min.js", (r) => r.fulfill({ status: 200, contentType: "text/javascript", path: XL + "/../html2canvas/dist/html2canvas.min.js" }));
+await page.route("https://cdnjs.cloudflare.com/**/jspdf.umd.min.js", (r) => r.fulfill({ status: 200, contentType: "text/javascript", path: XL + "/../jspdf/dist/jspdf.umd.min.js" }));
 const require = (await import("node:module")).createRequire(XL + "/");
 const XLSX = require(XL);
 const SHOTS = "/tmp/claude-0/-home-user-market-dashboard/bb8c23c7-3b19-5d69-bf17-137b43a7024b/scratchpad/";
@@ -182,6 +184,17 @@ await notes.locator("textarea").first().fill("הערה חופשית של הצו�
 // השם והמגדר לא נשמרים בשום מקום: לא ב-Firestore המדומה ולא ב-localStorage
 const stores = await page.evaluate(() => JSON.stringify({ ...localStorage }));
 assert.ok(!stores.includes("דנה כהן"), "השם לא נשמר");
+// הורדת PDF ישירה (בלי חלון הדפסה): קובץ אמיתי, בלי שם הילד בשם הקובץ
+const [dl] = await Promise.all([page.waitForEvent("download"), page.getByRole("button", { name: "הורדת PDF" }).click()]);
+assert.match(dl.suggestedFilename(), /^functional-report-14-\d{4}-\d{2}-\d{2}\.pdf$/);
+assert.ok(!dl.suggestedFilename().includes("דנה"));
+const directPath = SHOTS + "direct-report.pdf";
+await dl.saveAs(directPath);
+const { execFileSync: exec0 } = await import("node:child_process");
+const directPages = Number(/Pages:\s+(\d+)/.exec(exec0("pdfinfo", [directPath]).toString())[1]);
+assert.ok(directPages >= 1 && directPages <= 6, "PDF ישיר: " + directPages + " עמודים");
+assert.ok((await import("node:fs")).statSync(directPath).size > 30000, "PDF ישיר אינו ריק");
+step(`הורדת PDF ישירה: ${directPages} עמודים`);
 await page.emulateMedia({ media: "print" });
 const pdfPath = SHOTS + "functional-report.pdf";
 await page.pdf({ path: pdfPath, format: "A4", printBackground: true });
