@@ -29,7 +29,8 @@ export async function childView(root, ctx, { gardenId, code, mode }) {
       h("h2", {}, `דשבורד ילד · ${code}`), garden ? h("span", { class: "chip" }, garden.name) : null,
       h("span", { class: "spacer" }),
       mode === "staff" ? h("a", { class: "btn", href: `#/fill/new/0?code=${encodeURIComponent(code)}` }, "מילוי חוזר") : null,
-      h("button", { class: "btn primary", onclick: () => downloadChildReport(ctx, { gardenId, code, level }) }, "הורדת דוח ילד (Excel)")),
+      h("a", { class: "btn primary", href: `#/report/${cur.id}` }, "דוח תפקודי מילולי (PDF)"),
+      h("button", { class: "btn", onclick: () => downloadChildReport(ctx, { gardenId, code, level }) }, "הורדת דוח ילד (Excel)")),
     h("p", { class: "muted" },
       `גיל ${cur.age} · מילוי אחרון ${fmtDate(cur.date)} · ${history.length} מילויים`),
     h("p", { class: "notice" }, "אין ציון כולל. זה פרופיל לפי תחום, ולא אבחון או קביעת זכאות."),
@@ -79,6 +80,6 @@ export async function childView(root, ctx, { gardenId, code, mode }) {
         h("tbody", {}, [...history].reverse().map((s) => h("tr", {},
           h("td", { "data-label": "תאריך" }, fmtDate(s.date)), h("td", { "data-label": "גיל" }, s.age), h("td", { "data-label": "גרסת טופס" }, s.formVersion),
           h("td", { "data-label": "פריטי בטיחות" }, (s.flags || []).map((f) => f.text).join(" · ") || "—"),
-          h("td", {}, h("a", { class: "btn small", href: `#/profile/${s.id}` }, "פרופיל מלא ותשובות")))))))
+          h("td", { class: "actions" }, h("a", { class: "btn small", href: `#/profile/${s.id}` }, "פרופיל מלא ותשובות"), h("a", { class: "btn small", href: `#/report/${s.id}` }, "דוח תפקודי")))))))
   );
 }

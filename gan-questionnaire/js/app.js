@@ -10,6 +10,7 @@ import { childView } from "./views/child.js";
 import { formEditorView } from "./views/formEditor.js";
 import { usersView } from "./views/users.js";
 import { passwordView } from "./views/password.js";
+import { reportView } from "./views/report.js";
 
 const app = document.getElementById("app");
 let ctx = null;
@@ -60,6 +61,7 @@ async function route() {
     if (parts[0] === "password") await passwordView(main, ctx);
     else if (parts[0] === "fill" && !isAdmin) await fillView(main, ctx, { id: parts[1] || "new", step: parts[2] }, search);
     else if (parts[0] === "profile") await profileView(main, ctx, { id: parts[1] });
+    else if (parts[0] === "report" && ctx.profile.role !== "assistant") await reportView(main, ctx, { id: parts[1] });
     else if (parts[0] === "child" && ctx.profile.role === "teacher")
       await childView(main, ctx, { gardenId: activeGardenId(ctx), code: decodeURIComponent(parts[1] || ""), mode: "staff" });
     else if (parts[0] === "children" && ctx.profile.role === "teacher") await teacherView(main, ctx);

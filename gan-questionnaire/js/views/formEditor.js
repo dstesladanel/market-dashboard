@@ -1,6 +1,7 @@
 import { h, clear, toast } from "../ui.js";
 import { publishForm } from "../store.js";
 import { seedForm } from "../seed.js";
+import { DEFAULT_TIPS } from "../narrative.js";
 
 const PALETTE = ["#fbe8dc", "#f8eed7", "#f5e3e3", "#e4eee4", "#e5eef5", "#ece6f5", "#f5ede2", "#f3ece6", "#e2e8f0", "#fde7f3"];
 const TYPES = { scale: "סולם 1–5", yesno: "כן / לא", text: "טקסט קצר" };
@@ -10,6 +11,8 @@ export async function formEditorView(root, ctx) {
   clear(root);
   const base = await ctx.currentForm();
   let draft = JSON.parse(JSON.stringify({ settings: base.settings, domains: base.domains, items: base.items }));
+  // טפסים ישנים בלי המלצות לדוח: ממלאים ברירת מחדל כדי שהמנהלת תוכל לראות ולערוך אותן
+  draft.domains.forEach((d) => { if (d.tips === undefined && DEFAULT_TIPS[d.id]) d.tips = DEFAULT_TIPS[d.id]; });
   let dirty = false;
   const touch = () => { dirty = true; badge.textContent = "יש שינויים שלא פורסמו"; badge.hidden = false; };
 
@@ -62,6 +65,14 @@ export async function formEditorView(root, ctx) {
         item.type === "scale" && h("div", { class: "grid2" },
           field("עוגן לציון 1", h("input", { value: item.low || "", oninput: bind("low") })),
           field("עוגן לציון 5", h("input", { value: item.high || "", oninput: bind("high") }))),
+        item.type !== "text" && h("details", { class: "dom-settings" },
+          h("summary", {}, "ניסוח לדוח התפקודי (לא חובה)"),
+          h("div", { class: "edit-body" },
+            item.type === "scale" && field("ניסוח כחוזקה (ציון 4–5). ריק = ניסוח אוטומטי מההיגד", h("textarea", { rows: 2, value: item.strengthText || "", oninput: bind("strengthText") })),
+            item.type === "scale" && field("ניסוח כתחום לעבודה (ציון 1–2). ריק = ניסוח אוטומטי", h("textarea", { rows: 2, value: item.needText || "", oninput: bind("needText") })),
+            item.type === "scale" && field("המלצת עבודה להיגד (מופיעה בציון 1–2)", h("textarea", { rows: 2, value: item.tip || "", oninput: bind("tip") })),
+            item.type === "yesno" && h("p", { class: "muted small" }, "היגד כן/לא מופיע בדוח לפי הניסוח שלו, בסעיף בטיחות ובריאות.")
+          )),
         h("div", { class: "edit-line checks" },
           item.type === "yesno" && h("label", { class: "check", title: "הילד יופיע ברשימת הילדים המסומנים אצל המנהלת" },
             h("input", { type: "checkbox", checked: !!item.flag, onchange: (e) => { item.flag = e.target.checked; touch(); draw(); } }), "דגל בטיחות"),
@@ -98,6 +109,9 @@ export async function formEditorView(root, ctx) {
           field("שם התחום", h("input", { value: dom.name, oninput: (e) => { dom.name = e.target.value; nameShown.textContent = e.target.value || "תחום חדש"; touch(); } })),
           field("צבע", h("select", { onchange: (e) => { dom.color = e.target.value; touch(); draw(); } },
             PALETTE.map((c) => h("option", { value: c, selected: c === dom.color, style: `background:${c}` }, "■ " + c))))),
+        field("המלצות עבודה כלליות בתחום (שורה לכל המלצה). מופיעות בדוח התפקודי כשהתחום חלש", h("textarea", {
+          rows: 4, value: dom.tips || "", oninput: (e) => { dom.tips = e.target.value; touch(); },
+        })),
         h("div", { class: "edit-line checks" },
           h("label", { class: "check", title: "תחום סיום: שדות טקסט בלי ממוצע" },
             h("input", { type: "checkbox", checked: !!dom.closing, onchange: (e) => { dom.closing = e.target.checked; touch(); draw(); } }), "תחום סיום (טקסט, בלי ממוצע)"),
