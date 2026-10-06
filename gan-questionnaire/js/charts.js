@@ -10,8 +10,8 @@ export function s(tag, attrs, ...kids) {
 export const SERIES_COLORS = ["#1f6faf", "#d6481a", "#2f7d4f", "#8a4fb0", "#c78a00", "#0e8a8a", "#b0446a"];
 const GRID = "#d9d3c7", INK = "#1d2430", MUTED = "#6a7280";
 
-function wrapLabel(text, max = 13) {
-  const words = String(text).split(/[\s,]+/).filter(Boolean);
+function wrapLabel(text, max = 15) {
+  const words = String(text).split(/\s+/).filter(Boolean);
   const lines = [];
   let cur = "";
   for (const w of words) {
@@ -43,8 +43,10 @@ export function radar(labels, series, { size = 360 } = {}) {
     const [lx, ly] = pt(i, 5.75);
     const lines = wrapLabel(l);
     const anchor = lx < cx - 8 ? "end" : lx > cx + 8 ? "start" : "middle";
-    svg.append(s("text", { x: lx, y: ly - ((lines.length - 1) * 6), "text-anchor": anchor, "font-size": 11, fill: INK },
-      lines.map((ln, k) => s("tspan", { x: lx, dy: k ? 12 : 4 }, ln))));
+    // כל שורה היא אלמנט <text> נפרד. ב-Safari טקסט עברי בכמה tspan נערבב (סדר דו-כיווני חוצה שורות)
+    lines.forEach((ln, k) => svg.append(s("text", {
+      x: lx, y: ly - ((lines.length - 1) * 6) + 4 + k * 12, "text-anchor": anchor, "font-size": 11, fill: INK,
+    }, ln)));
   });
   [1, 3, 5].forEach((g) => svg.append(s("text", { x: cx + 3, y: cy - (R * g) / 5 - 2, "font-size": 9, fill: MUTED }, g)));
   series.forEach((se) => {
