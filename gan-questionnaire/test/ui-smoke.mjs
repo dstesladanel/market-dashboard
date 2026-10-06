@@ -13,7 +13,7 @@ await page.route("https://www.gstatic.com/firebasejs/**", (r) => {
   const u = r.request().url();
   r.fulfill(js(u.includes("firebase-app") ? appJs : u.includes("firebase-auth") ? authJs : fsJs));
 });
-await page.route("**/js/firebase-config.js", (r) => r.fulfill(js(configJs)));
+await page.route("**/js/firebase-config.js*", (r) => r.fulfill(js(configJs)));
 await page.route("https://fonts.googleapis.com/**", (r) => r.fulfill({ status: 200, body: "" }));
 const XL = "/tmp/claude-0/-home-user-market-dashboard/bb8c23c7-3b19-5d69-bf17-137b43a7024b/scratchpad/xl/node_modules/xlsx";
 await page.route("https://cdnjs.cloudflare.com/**/xlsx.full.min.js", (r) => r.fulfill({ status: 200, contentType: "text/javascript", path: XL + "/dist/xlsx.full.min.js" }));
@@ -30,9 +30,14 @@ async function download(clickFn) {
 }
 
 const step = (m) => console.log("•", m);
+// כל מודולי ה-JS נטענים עם ?v= (עוקף מטמון ישן בנייד)
+const moduleUrls = [];
+page.on("request", (rq) => { if (/\/js\/.*\.js/.test(rq.url())) moduleUrls.push(rq.url()); });
 
 // ---- הקמה ראשונה ----
 await page.goto(BASE);
+assert.ok(moduleUrls.length > 5 && moduleUrls.every((u) => /[?&]v=[0-9a-f]{8}/.test(u)), "כל המודולים עם גרסה: " + moduleUrls.filter((u) => !/v=/.test(u)).join(","));
+assert.match(await page.locator(".build-line").innerText(), /גרסה [0-9a-f]{8}/);
 await page.getByText("הקמה ראשונה של המערכת").click();
 await page.locator("input[type=email]").fill("admin@test.il");
 await page.locator("input[type=password]").fill("pw123456");
