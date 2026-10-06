@@ -77,7 +77,7 @@ await page.waitForSelector("text=עריכת השאלון · גרסה נוכחי�
 assert.equal(await page.locator(".edit-domain").count(), 8);
 await page.locator(".edit-domain").first().getByRole("button", { name: "+ היגד" }).click();
 const newItem = page.locator(".edit-domain").first().locator(".edit-item").last();
-await newItem.locator("textarea").fill("היגד חדש של המנהלת");
+await newItem.locator("textarea").first().fill("היגד חדש של המנהלת");
 await newItem.getByLabel("עוגן לציון 1").fill("נמוך");
 await newItem.getByLabel("עוגן לציון 5").fill("גבוה");
 page.on("dialog", (d) => d.accept());
@@ -158,6 +158,46 @@ assert.deepEqual(r2.wb.SheetNames, ["מידע", "ממוצעים לפי תחום"
 step("דוח ילד (Excel) לגננת כולל גיליון תשובות");
 await page.getByRole("link", { name: "פרופיל מלא ותשובות" }).click();
 await page.waitForSelector("text=פרופיל · ילד 14");
+
+// ---- דוח תפקודי מילולי: מגדר ושם להדפסה בלבד, עריכה, PDF ----
+await page.getByRole("link", { name: "דוח תפקודי מילולי (PDF)" }).click();
+await page.waitForSelector("text=פרטים להדפסה");
+await page.locator("select").selectOption("f");
+await page.getByPlaceholder("לא חובה").fill("דנה כהן");
+await page.getByRole("button", { name: "יצירת טיוטת דוח" }).click();
+await page.waitForSelector(".report");
+const reportText = await page.locator(".report").innerText();
+assert.match(reportText, /דנה כהן/);
+assert.match(reportText, /תמונת מצב כללית/);
+assert.match(reportText, /חוזקות לשימור ולפיתוח/);
+assert.match(reportText, /תובנות והמלצות להמשך הטיפול/);
+const overview = await page.locator(".report .rsec").first().locator("textarea").first().inputValue();
+assert.match(overview, /הילדה/, "ניסוח בנקבה");
+// עריכה: משנים פסקה ומוסיפים נקודה בהערות הצוות
+await page.locator(".report .rsec").first().locator("textarea").first().fill("פסקה שנערכה על ידי הגננת.");
+const notes = page.locator(".report .rsec").last();
+await notes.getByRole("button", { name: "+ הוספת נקודה" }).click();
+await notes.locator("textarea").first().fill("הערה חופשית של הצוות");
+// השם והמגדר לא נשמרים בשום מקום: לא ב-Firestore המדומה ולא ב-localStorage
+const stores = await page.evaluate(() => JSON.stringify({ ...localStorage }));
+assert.ok(!stores.includes("דנה כהן"), "השם לא נשמר");
+await page.emulateMedia({ media: "print" });
+const pdfPath = SHOTS + "functional-report.pdf";
+await page.pdf({ path: pdfPath, format: "A4", printBackground: true });
+await page.emulateMedia({ media: "screen" });
+const { execFileSync } = await import("node:child_process");
+const pdfInfo = execFileSync("pdfinfo", [pdfPath]).toString();
+const pages = Number(/Pages:\s+(\d+)/.exec(pdfInfo)[1]);
+assert.ok(pages >= 1 && pages <= 6, "מספר עמודים סביר: " + pages);
+const pdfText = execFileSync("pdftotext", ["-layout", pdfPath, "-"]).toString();
+assert.ok(pdfText.includes("14"), "מספר הילד בקובץ");
+assert.ok(!pdfText.includes("הורדה / הדפסה"), "כפתורים לא מודפסים");
+await page.screenshot({ path: SHOTS + "report-screen.png", fullPage: true });
+step(`דוח תפקודי: טיוטה בנקבה, עריכה, PDF בן ${pages} עמודים, השם לא נשמר`);
+await page.getByRole("link", { name: "חזרה" }).first().click();
+await page.waitForSelector("text=פרופיל · ילד 14");
+const fakeDb = await page.evaluate(() => localStorage.getItem("fakedb"));
+assert.ok(!fakeDb.includes("דנה כהן"), "השם לא הגיע ל-Firestore");
 
 // ---- מילוי חוזר ----
 await page.getByRole("link", { name: "חזרה לרשימה" }).click();

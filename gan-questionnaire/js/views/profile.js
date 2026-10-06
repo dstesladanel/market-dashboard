@@ -42,6 +42,7 @@ export async function profileView(root, ctx, params) {
       h("a", { class: "btn", href: admin ? `#/admin/garden/${resp.gardenId}` : "#/children" }, admin ? "חזרה לגן" : "חזרה לרשימה"),
       h("span", { class: "spacer" }),
       h("a", { class: "btn", href: admin ? `#/admin/child/${resp.gardenId}/${encodeURIComponent(resp.childCode)}` : `#/child/${encodeURIComponent(resp.childCode)}` }, "דשבורד הילד"),
+      h("a", { class: "btn primary", href: `#/report/${resp.id}` }, "דוח תפקודי מילולי (PDF)"),
       h("button", { class: "btn", onclick: () => downloadChildReport(ctx, { gardenId: resp.gardenId, code: resp.childCode, level: "staff" }) }, "הורדת דוח ילד (Excel)"),
       window.print && h("button", { class: "btn", onclick: () => window.print() }, "הדפסה")
     ),
